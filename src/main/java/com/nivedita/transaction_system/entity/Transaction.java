@@ -33,5 +33,40 @@ public class Transaction {
         this.status = TransactionStatus.PENDING;
     }
 
-    // getters and setters
+    // ✅ ADD THESE METHODS
+    public Long getId() {
+        return id;
+    }
+
+    public String getSenderAccount() {
+        return senderAccount;
+    }
+
+    public void setSenderAccount(String senderAccount) {
+        this.senderAccount = senderAccount;
+    }
+
+    public String getReceiverAccount() {
+        return receiverAccount;
+    }
+
+    public void setReceiverAccount(String receiverAccount) {
+        this.receiverAccount = receiverAccount;
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
+    }
+
+    public TransactionStatus getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }
