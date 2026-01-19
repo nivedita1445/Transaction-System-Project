@@ -27,13 +27,14 @@ public class Transaction {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    // Automatically set timestamp before insert
     @PrePersist
-    public void onCreate() {
+    public void prePersist() {
         this.createdAt = LocalDateTime.now();
-        this.status = TransactionStatus.PENDING;
     }
 
-    // ✅ ADD THESE METHODS
+    // ===== Getters & Setters =====
+
     public Long getId() {
         return id;
     }
@@ -64,6 +65,10 @@ public class Transaction {
 
     public TransactionStatus getStatus() {
         return status;
+    }
+
+    public void setStatus(TransactionStatus status) {
+        this.status = status;
     }
 
     public LocalDateTime getCreatedAt() {

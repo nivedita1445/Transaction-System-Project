@@ -16,6 +16,9 @@ public class TransactionRequest {
     @Positive
     private Double amount;
 
+    // Optional field (NOT used by service logic)
+    private String status;
+
     public String getSenderAccount() {
         return senderAccount;
     }
@@ -38,5 +41,14 @@ public class TransactionRequest {
 
     public void setAmount(Double amount) {
         this.amount = amount;
+    }
+
+    // Getter/Setter added intentionally (future extensibility)
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
