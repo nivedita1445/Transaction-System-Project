@@ -6,18 +6,17 @@ import jakarta.validation.constraints.Positive;
 
 public class TransactionRequest {
 
-    @NotBlank
+    @NotBlank(message = "Sender account must not be blank")
     private String senderAccount;
 
-    @NotBlank
+    @NotBlank(message = "Receiver account must not be blank")
     private String receiverAccount;
 
-    @NotNull
-    @Positive
+    @NotNull(message = "Amount must not be null")
+    @Positive(message = "Amount must be greater than zero")
     private Double amount;
 
-    // Optional field (NOT used by service logic)
-    private String status;
+    // --- Getters and Setters ---
 
     public String getSenderAccount() {
         return senderAccount;
@@ -41,14 +40,5 @@ public class TransactionRequest {
 
     public void setAmount(Double amount) {
         this.amount = amount;
-    }
-
-    // Getter/Setter added intentionally (future extensibility)
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 }

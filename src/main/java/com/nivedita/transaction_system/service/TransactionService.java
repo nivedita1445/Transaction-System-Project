@@ -1,6 +1,7 @@
 package com.nivedita.transaction_system.service;
 
 import com.nivedita.transaction_system.dto.TransactionRequest;
+import com.nivedita.transaction_system.dto.TransactionResponse;
 import com.nivedita.transaction_system.entity.Transaction;
 import com.nivedita.transaction_system.entity.TransactionStatus;
 import com.nivedita.transaction_system.event.TransactionCreatedEvent;
@@ -20,6 +21,9 @@ public class TransactionService {
         this.eventPublisher = eventPublisher;
     }
 
+    // =========================
+    // POST – Create Transaction
+    // =========================
     public Transaction createTransaction(TransactionRequest requestDto) {
 
         // 1. Create entity
@@ -41,5 +45,19 @@ public class TransactionService {
 
         // 5. Return immediately (async processing happens later)
         return savedTransaction;
+    }
+
+    // =========================
+    // GET – Fetch Transaction Status
+    // =========================
+    public TransactionResponse getTransactionStatus(Long id) {
+
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        return new TransactionResponse(
+                transaction.getId(),
+                transaction.getStatus()
+        );
     }
 }
