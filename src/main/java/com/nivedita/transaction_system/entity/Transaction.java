@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transactions", schema = "public")
-
 public class Transaction {
 
     @Id
@@ -28,7 +27,12 @@ public class Transaction {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    // Automatically set timestamp before insert
+    @Column(name = "retry_count", nullable = false)
+    private int retryCount = 0;
+
+    @Column(name = "max_retries", nullable = false)
+    private int maxRetries = 3;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
@@ -74,5 +78,21 @@ public class Transaction {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
+    }
+
+    public int getMaxRetries() {
+        return maxRetries;
+    }
+
+    public void setMaxRetries(int maxRetries) {
+        this.maxRetries = maxRetries;
     }
 }
