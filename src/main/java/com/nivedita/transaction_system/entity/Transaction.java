@@ -4,7 +4,13 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transactions", schema = "public")
+@Table(
+        name = "transactions",
+        schema = "public",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "idempotency_key")
+        }
+)
 public class Transaction {
 
     @Id
@@ -27,11 +33,15 @@ public class Transaction {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "retry_count", nullable = false)
+    @Column(nullable = false)
     private int retryCount = 0;
 
-    @Column(name = "max_retries", nullable = false)
+    @Column(nullable = false)
     private int maxRetries = 3;
+
+    // 🔑 NEW — Idempotency key
+    @Column(name = "idempotency_key", nullable = false, unique = true)
+    private String idempotencyKey;
 
     @PrePersist
     public void prePersist() {
@@ -94,5 +104,13 @@ public class Transaction {
 
     public void setMaxRetries(int maxRetries) {
         this.maxRetries = maxRetries;
+    }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
     }
 }
