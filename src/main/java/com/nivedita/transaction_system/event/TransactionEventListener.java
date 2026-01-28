@@ -3,6 +3,7 @@ package com.nivedita.transaction_system.event;
 import com.nivedita.transaction_system.entity.Transaction;
 import com.nivedita.transaction_system.entity.TransactionStatus;
 import com.nivedita.transaction_system.repository.TransactionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component
 public class TransactionEventListener {
 
@@ -30,32 +32,33 @@ public class TransactionEventListener {
         Transaction transaction = transactionRepository.findById(event.getTransactionId())
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
 
+        // ✅ SIMULATE SUCCESS / FAILURE (YOUR LOGIC)
         boolean success = Math.random() > 0.7; // force more failures
 
         if (success) {
             transaction.setStatus(TransactionStatus.SUCCESS);
             transactionRepository.saveAndFlush(transaction);
-            System.out.println("✅ SUCCESS TX: " + transaction.getId());
+            log.info("✅ SUCCESS TX: {}", transaction.getId());
             return;
         }
 
-        // ----- FAILURE -----
+        // ----- FAILURE FLOW -----
         int newRetry = transaction.getRetryCount() + 1;
         transaction.setRetryCount(newRetry);
 
         if (newRetry >= transaction.getMaxRetries()) {
             transaction.setStatus(TransactionStatus.FAILED);
             transactionRepository.saveAndFlush(transaction);
-            System.out.println("❌ FAILED TX after retries: " + transaction.getId());
+            log.error("❌ FAILED TX after retries: {}", transaction.getId());
             return;
         }
 
         transaction.setStatus(TransactionStatus.PENDING);
         transactionRepository.saveAndFlush(transaction);
 
-        System.out.println("🔁 RETRY " + newRetry + " for TX: " + transaction.getId());
+        log.warn("🔁 RETRY {} for TX: {}", newRetry, transaction.getId());
 
-        // 🔁 REPUBLISH EVENT FOR NEXT RETRY
+        // 🔁 REPUBLISH EVENT FOR NEXT RETRY (YOUR CORE LOGIC)
         eventPublisher.publishEvent(
                 new TransactionCreatedEvent(transaction.getId())
         );

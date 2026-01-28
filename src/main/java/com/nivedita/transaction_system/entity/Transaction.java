@@ -1,116 +1,52 @@
 package com.nivedita.transaction_system.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
 @Table(
         name = "transactions",
-        schema = "public",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "idempotency_key")
-        }
+        uniqueConstraints = @UniqueConstraint(columnNames = "idempotency_key")
 )
-public class Transaction {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Transaction extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String senderAccount;
-
-    @Column(nullable = false)
-    private String receiverAccount;
-
+    // 💰 Amount
     @Column(nullable = false)
     private Double amount;
 
+    // 🏦 Sender Account
+    @Column(name = "sender_account", nullable = false)
+    private String senderAccount;
+
+    // 🏦 Receiver Account
+    @Column(name = "receiver_account", nullable = false)
+    private String receiverAccount;
+
+    // 📝 Description
+    private String description;
+
+    // ✅ Status
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TransactionStatus status;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private int retryCount = 0;
-
-    @Column(nullable = false)
-    private int maxRetries = 3;
-
-    // 🔑 NEW — Idempotency key
+    // ✅ Idempotency Key
     @Column(name = "idempotency_key", nullable = false, unique = true)
     private String idempotencyKey;
 
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-    }
+    // 🔁 Retry Count
+    @Column(nullable = false)
+    private int retryCount;
 
-    // ===== Getters & Setters =====
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getSenderAccount() {
-        return senderAccount;
-    }
-
-    public void setSenderAccount(String senderAccount) {
-        this.senderAccount = senderAccount;
-    }
-
-    public String getReceiverAccount() {
-        return receiverAccount;
-    }
-
-    public void setReceiverAccount(String receiverAccount) {
-        this.receiverAccount = receiverAccount;
-    }
-
-    public Double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Double amount) {
-        this.amount = amount;
-    }
-
-    public TransactionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TransactionStatus status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public int getRetryCount() {
-        return retryCount;
-    }
-
-    public void setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
-    }
-
-    public int getMaxRetries() {
-        return maxRetries;
-    }
-
-    public void setMaxRetries(int maxRetries) {
-        this.maxRetries = maxRetries;
-    }
-
-    public String getIdempotencyKey() {
-        return idempotencyKey;
-    }
-
-    public void setIdempotencyKey(String idempotencyKey) {
-        this.idempotencyKey = idempotencyKey;
-    }
+    // 🔁 Max Retries
+    @Column(nullable = false)
+    private int maxRetries;
 }

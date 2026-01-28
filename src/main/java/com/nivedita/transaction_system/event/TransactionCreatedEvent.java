@@ -1,5 +1,8 @@
 package com.nivedita.transaction_system.event;
 
+import com.nivedita.transaction_system.entity.Transaction;
+import org.springframework.context.ApplicationEvent;
+
 public class TransactionCreatedEvent {
 
     private final Long transactionId;
@@ -12,3 +15,4 @@ public class TransactionCreatedEvent {
         return transactionId;
     }
 }
+

@@ -1,9 +1,9 @@
 package com.nivedita.transaction_system.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.retry.annotation.EnableRetry;
 
 @Configuration
-@EnableAsync
-public class AsyncConfig {
+@EnableRetry
+public class RetryConfig {
 }

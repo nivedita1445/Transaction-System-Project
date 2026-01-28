@@ -1,31 +1,49 @@
 package com.nivedita.transaction_system.controller;
 
-import com.nivedita.transaction_system.dto.TransactionRequest;
-import com.nivedita.transaction_system.entity.Transaction;
+import com.nivedita.transaction_system.dto.request.TransactionRequest;
+import com.nivedita.transaction_system.dto.response.ApiResponse;
 import com.nivedita.transaction_system.service.TransactionService;
-import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping("/api/transactions") // ✅ FIXED
+@RequiredArgsConstructor
 public class TransactionController {
 
-    private final TransactionService service;
-
-    public TransactionController(TransactionService service) {
-        this.service = service;
-    }
+    private final TransactionService transactionService;
 
     @PostMapping
-    public Transaction createTransaction(
-            @RequestHeader("Idempotency-Key") String idempotencyKey,
-            @Valid @RequestBody TransactionRequest request
-    ) {
-        return service.createTransaction(request, idempotencyKey);
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
+    public ApiResponse<?> createTransaction(@RequestBody TransactionRequest request) {
+        return new ApiResponse<>(
+                true,
+                "Transaction created successfully",
+                transactionService.createTransaction(request)
+        );
     }
 
-    @GetMapping("/{id}/status")
-    public String getStatus(@PathVariable Long id) {
-        return service.getTransactionStatus(id).name();
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
+    public ApiResponse<?> getTransactionById(@PathVariable Long id) {
+        return new ApiResponse<>(
+                true,
+                "Transaction fetched successfully",
+                transactionService.getTransactionById(id)
+        );
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
+    public ApiResponse<?> getAllTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        return new ApiResponse<>(
+                true,
+                "Transactions fetched successfully",
+                transactionService.getAllTransactions(page, size)
+        );
     }
 }
