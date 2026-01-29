@@ -6,6 +6,8 @@ import com.nivedita.transaction_system.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+
 
 @RestController
 @RequestMapping("/api/transactions") // ✅ FIXED
@@ -16,7 +18,7 @@ public class TransactionController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
-    public ApiResponse<?> createTransaction(@RequestBody TransactionRequest request) {
+    public ApiResponse<?> createTransaction(@Valid @RequestBody TransactionRequest request) {
         return new ApiResponse<>(
                 true,
                 "Transaction created successfully",

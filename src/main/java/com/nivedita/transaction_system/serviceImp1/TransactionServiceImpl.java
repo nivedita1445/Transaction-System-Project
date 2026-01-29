@@ -5,9 +5,11 @@ import com.nivedita.transaction_system.dto.response.TransactionResponse;
 import com.nivedita.transaction_system.entity.Transaction;
 import com.nivedita.transaction_system.entity.TransactionStatus;
 import com.nivedita.transaction_system.event.TransactionCreatedEvent;
+import com.nivedita.transaction_system.exception.DuplicateTransactionException;
 import com.nivedita.transaction_system.exception.ResourceNotFoundException;
 import com.nivedita.transaction_system.repository.TransactionRepository;
 import com.nivedita.transaction_system.service.TransactionService;
+import com.nivedita.transaction_system.exception.DuplicateTransactionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,15 +31,17 @@ public class TransactionServiceImpl implements TransactionService {
 
         log.info("➡️ Create Transaction request with idempotencyKey={}", request.getIdempotencyKey());
 
-        // ✅ IDEMPOTENCY CHECK (YOUR LOGIC)
+        // ✅ IDEMPOTENCY CHECK
         Transaction existing = transactionRepository
                 .findByIdempotencyKey(request.getIdempotencyKey())
                 .orElse(null);
 
         if (existing != null) {
-            log.warn("⚠️ Duplicate transaction detected, returning existing transaction");
-            return mapToResponse(existing);
+            throw new DuplicateTransactionException(
+                    "Duplicate transaction detected with idempotencyKey=" + request.getIdempotencyKey()
+            );
         }
+
 
         // ✅ CREATE NEW TRANSACTION
         Transaction transaction = Transaction.builder()
@@ -51,12 +55,11 @@ public class TransactionServiceImpl implements TransactionService {
                 .maxRetries(3)
                 .build();
 
-
         Transaction saved = transactionRepository.save(transaction);
 
         log.info("✅ Transaction saved with ID={}", saved.getId());
 
-        // ✅ PUBLISH EVENT (YOUR EVENT-RETRY LOGIC)
+        // ✅ EVENT PUBLISH
         eventPublisher.publishEvent(new TransactionCreatedEvent(saved.getId()));
 
         return mapToResponse(saved);

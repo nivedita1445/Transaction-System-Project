@@ -2,8 +2,11 @@ package com.nivedita.transaction_system.security;
 
 import com.nivedita.transaction_system.dto.response.ApiResponse;
 import com.nivedita.transaction_system.entity.User;
+import com.nivedita.transaction_system.exception.ResourceNotFoundException;
 import com.nivedita.transaction_system.repository.UserRepository;
-import com.nivedita.transaction_system.security.jwt.*;
+import com.nivedita.transaction_system.security.jwt.JwtUtil;
+import com.nivedita.transaction_system.security.jwt.LoginRequest;
+import com.nivedita.transaction_system.security.jwt.LoginResponse;
 import com.nivedita.transaction_system.security.model.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,11 +21,12 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+    // ✅ REGISTER API
     @PostMapping("/register")
     public ApiResponse<?> register(@RequestBody LoginRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            return new ApiResponse<>(false, "Email already exists", null);
+            return ApiResponse.fail("Email already exists");
         }
 
         User user = User.builder()
@@ -34,22 +38,31 @@ public class AuthController {
 
         userRepository.save(user);
 
-        return new ApiResponse<>(true, "User registered successfully", null);
+        return ApiResponse.success(null, "User registered successfully");
     }
 
+    // ✅ LOGIN API (UPGRADED EXCEPTION HANDLING)
     @PostMapping("/login")
     public ApiResponse<?> login(@RequestBody LoginRequest request) {
 
+        // ✅ USER NOT FOUND
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found with email: " + request.getEmail())
+                );
 
+        // ✅ WRONG PASSWORD
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            return ApiResponse.fail("Invalid password");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        // ✅ GENERATE JWT TOKEN
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
-        return new ApiResponse<>(true, "Login successful",
-                new LoginResponse(token, user.getRole().name()));
+
+        return ApiResponse.success(
+                new LoginResponse(token, user.getRole().name()),
+                "Login successful"
+        );
     }
 }

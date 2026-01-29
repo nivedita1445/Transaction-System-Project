@@ -1,6 +1,7 @@
 package com.nivedita.transaction_system.security;
 
 import com.nivedita.transaction_system.entity.User;
+import com.nivedita.transaction_system.exception.ResourceNotFoundException;
 import com.nivedita.transaction_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         System.out.println("✅ LOGIN USER = " + email);
         System.out.println("✅ ROLE FROM DB = " + user.getRole().name());
@@ -28,7 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getEmail(),
                 user.getPassword(),
                 Collections.singletonList(
-                        new SimpleGrantedAuthority(user.getRole().name()) // ROLE_USER / ROLE_ADMIN
+                        new SimpleGrantedAuthority(user.getRole().name())
                 )
         );
     }
