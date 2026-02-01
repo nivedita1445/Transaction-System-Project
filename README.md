@@ -1,168 +1,198 @@
-Transaction System Backend (Spring Boot)
+💳 Secure Transaction Processing System (Spring Boot)
 📌 Project Overview
 
-The Transaction System Backend is a production-ready, secure backend application built using Spring Boot for handling financial transactions in a controlled, role-based, and reliable manner.
+The Secure Transaction Processing System is a backend system designed to model real-world financial transaction handling with strong emphasis on security, consistency, failure recovery, and operational readiness.
 
-It supports JWT authentication, role-based access (USER / ADMIN), transaction lifecycle management, retry handling with max retry limits, idempotent transaction processing, and API documentation using Swagger.
+Unlike simple CRUD systems, this project focuses on transaction lifecycles, retry mechanisms, role-based controls, and stateless authentication, making it closer to banking / payment gateway backend services.
 
-This project is designed to simulate real-world banking / payment systems, focusing on data consistency, security, and failure handling.
+The application is fully Dockerized, documented via Swagger, and prepared for cloud deployment on AWS.
 
-🧠 Why This Project Matters
+🎯 What Problem This Project Solves
 
-Demonstrates secure backend architecture using JWT
+Real transaction systems must handle:
 
-Implements role-based authorization (USER vs ADMIN)
+Partial failures
 
-Handles real transaction flows, not just CRUD
+Duplicate requests
 
-Includes retry & failure management
+Unauthorized access
 
-Fully testable via Swagger UI
+Retry limits
 
-Dockerized and ready for AWS deployment
+Admin intervention
+
+This project addresses those concerns by implementing:
+
+JWT-based authentication
+
+Role separation (USER / ADMIN)
+
+Transaction state machine
+
+Retry & max-retry enforcement
+
+Idempotency protection
+
+Operational Docker deployment
 
 🔗 Live API (Swagger)
 
-🔜 Will be updated after AWS deployment
+🚧 Will be updated after AWS EC2 deployment
 
 http://<PUBLIC-IP>:8080/swagger-ui/index.html
 
-🏗️ Architecture (Deep Dive)
-High-Level Flow
-Client (Swagger / Postman / Frontend)
-        ↓
-JWT Authentication Filter
-        ↓
-REST Controller
-        ↓
-Request DTO (@Valid)
-        ↓
-Service Layer (Business Logic)
-        ↓
-Repository Layer (JPA)
-        ↓
-Hibernate ORM
-        ↓
-PostgreSQL Database
-        ↑
-Response DTO
+🧠 System Design Philosophy (Unique)
+This is NOT a CRUD system.
 
-🧩 Layer-wise Explanation
-1️⃣ Controller Layer
+The design revolves around transaction states and transitions, not database rows.
+
+Core Design Principles
+
+State-driven logic
+
+Security-first
+
+Failure-aware
+
+Cloud-ready
+
+Operational simplicity
+
+🏗️ Architecture Overview
+Logical Flow
+Client (Swagger / Frontend)
+        ↓
+JWT Authorization Layer
+        ↓
+Role Validation (USER / ADMIN)
+        ↓
+Transaction State Engine
+        ↓
+Service Layer (Business Rules)
+        ↓
+Persistence Layer (JPA)
+        ↓
+PostgreSQL
+
+🔁 Transaction State Machine
+
+Every transaction follows a controlled lifecycle:
+
+CREATED → PENDING → SUCCESS
+                 ↘ FAILED → RETRY → SUCCESS / FAILED
+
+Rules Enforced
+
+Retries allowed only for FAILED transactions
+
+Retry count capped (max retry threshold)
+
+Status updates restricted to ADMIN role
+
+Duplicate transaction prevention using idempotency key
+
+🔐 Security Architecture
+Authentication
+
+Stateless JWT authentication
+
+Token issued on login
+
+Token validated on every request
+
+Authorization
+Role	Permissions
+USER	Create transactions, view own data
+ADMIN	Update transaction status, manage users
+
+Unauthorized access results in:
+
+401 Unauthorized (no / invalid token)
+
+403 Forbidden (role violation)
+
+🧩 Component Breakdown
+1️⃣ Security Layer
+
+JWT Authentication Filter
+
+Custom Authentication Entry Point
+
+Custom Access Denied Handler
+
+Stateless Spring Security configuration
+
+Purpose: Prevent unauthorized access at the gateway level
+
+2️⃣ Controller Layer
 
 Exposes REST APIs
 
-Handles request mapping (@GetMapping, @PostMapping, @PutMapping)
+Handles HTTP concerns only
 
-Accepts Request DTOs
+No business logic
 
-Returns Response DTOs
+Clean separation by domain:
 
-No business logic (thin controllers)
+Auth
 
-2️⃣ DTO Layer (Security Boundary)
+User
 
-Prevents direct exposure of entities
+Transaction
 
-Controls client input & output
+Admin
 
-Enables validation (@NotNull, @Positive, etc.)
+3️⃣ Service Layer (Core Brain)
 
-Supports clean API contracts
-
-3️⃣ Service Layer (Core Logic)
-
-Handles:
+This is where the real system logic lives:
 
 Transaction creation
 
-Retry logic with max retry count
+State validation
 
-Status transitions (PENDING → SUCCESS / FAILED)
+Retry eligibility checks
 
-Idempotency key validation
+Max retry enforcement
 
-Role-based business rules
+Idempotency validation
 
-This layer ensures data consistency and reliability.
+This layer ensures business correctness, not just data persistence.
 
-4️⃣ Repository Layer
+4️⃣ Persistence Layer
 
-Extends JpaRepository
+JPA repositories
 
-No manual SQL
+Hibernate ORM
 
-Hibernate handles persistence
+PostgreSQL database
 
-Clean separation from business logic
+No native SQL
 
-5️⃣ Security Layer (JWT)
+Focus: Consistency and reliability
 
-JWT Authentication Filter
-
-Custom UserDetailsService
-
-Role-based access control
-
-Stateless authentication
-
-Secure endpoints via Spring Security
-
-⚙️ Tech Stack
-Layer	Technology
+⚙️ Technology Stack
+Category	Technology
 Language	Java 17
 Framework	Spring Boot 3.x
 Security	Spring Security + JWT
-ORM	Hibernate + JPA
+ORM	Hibernate / JPA
 Database	PostgreSQL
-Validation	Jakarta Bean Validation
 API Docs	Swagger (Springdoc OpenAPI)
-Containerization	Docker & Docker Compose
+Containerization	Docker, Docker Compose
 Build Tool	Maven
-Cloud	AWS EC2 (Planned)
-🔐 Security & Roles
-USER Role
+Cloud	AWS EC2 (Deployment Ready)
+📑 Features Implemented
+✅ Authentication
+
+Register & login
+
+JWT token issuance
+
+Token validation
+
+✅ Transaction Processing
 
 Create transactions
-
-View own transactions
-
-Manage profile
-
-ADMIN Role
-
-Update transaction status
-
-View all users
-
-Control retries & failures
-
-Unauthorized access is strictly blocked.
-
-🔁 Transaction Lifecycle
-PENDING → SUCCESS
-PENDING → FAILED → RETRY → SUCCESS / FAILED
-
-Rules:
-
-Max retry count enforced
-
-Retry only allowed for FAILED transactions
-
-Admin-controlled status updates
-
-Idempotency key prevents duplicates
-
-📑 Features Implemented
-✅ Authentication & Authorization
-
-JWT-based login
-
-Role-based access control
-
-✅ Transaction Management
-
-Create transaction
 
 Fetch transactions
 
@@ -170,79 +200,77 @@ Fetch by ID
 
 ✅ Retry Mechanism
 
-Max retry limit
+Retry only on failure
 
-Controlled retries
+Max retry count enforced
 
-Failure tracking
+Retry tracking per transaction
 
-✅ Admin Controls
+✅ Admin Operations
 
 Update transaction status
 
 View users
 
-Secure admin endpoints
+Secure admin-only APIs
 
-✅ Swagger UI
+✅ Swagger Integration
 
-Interactive API testing
+JWT authorization inside Swagger UI
 
-JWT authorization support
+Full API exploration without frontend
 
-✅ Docker Support
+✅ Dockerization
 
-Application containerized
+Application container
 
-PostgreSQL containerized
+PostgreSQL container
 
-Single-command startup using Docker Compose
+Networked via Docker Compose
+
+Single-command startup
 
 🔎 API Examples
-Create Transaction (POST)
+Create Transaction (USER)
 {
-  "amount": 1000,
-  "senderAccount": "ACC123",
-  "receiverAccount": "ACC456",
-  "description": "Payment",
-  "idempotencyKey": "txn-001"
+  "amount": 2500,
+  "senderAccount": "ACC1001",
+  "receiverAccount": "ACC2001",
+  "description": "Fund Transfer",
+  "idempotencyKey": "txn-1001"
 }
 
-Admin Update Status (PUT)
-/api/admin/transactions/{id}/status?status=SUCCESS
+Update Transaction Status (ADMIN)
+PUT /api/admin/transactions/{id}/status?status=SUCCESS
 
-▶️ How to Run Locally
-1️⃣ Clone Repository
-git clone https://github.com/nivedita1445/Transaction-System-Project.git
-
-2️⃣ Build Application
+▶️ Running Locally (Docker)
+Build Application
 mvn clean package -DskipTests
 
-3️⃣ Run with Docker Compose
+Start Services
 docker compose up -d
 
-4️⃣ Open Swagger
+Access Swagger
 http://localhost:8080/swagger-ui.html
 
-☁️ Deployment
+☁️ Deployment Strategy
 
-AWS EC2 (in progress)
+AWS EC2
 
 Docker Compose based deployment
 
-Public IP access planned
+PostgreSQL containerized
 
+Public IP exposure via EC2 security group
+
+📌 Project Status
+Phase	Status
+Development	✅ Completed
+Security	✅ Completed
+Swagger Testing	✅ Completed
+Docker	✅ Completed
+AWS Deployment	🔄 In Progress
 👩‍💻 Author
 
 Nivedita Wani
-Backend Developer | Java | Spring Boot | Docker | AWS
-
-✅ Project Status
-
-✔ Development completed
-
-✔ Swagger tested locally
-
-✔ Dockerized successfully
-
-🔄 AWS deployment pending
+Backend Engineer | Java | Spring Boot | Security | Docker | AWS
