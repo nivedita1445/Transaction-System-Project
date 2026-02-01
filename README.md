@@ -1,43 +1,30 @@
-# 🏦 Transaction System – Secure Event-Driven Backend (Spring Boot)
+# Transaction Processing System (Spring Boot)
 
 ## 📌 Project Overview
 
-The **Secure Transaction Processing System** is a **production-grade backend application** built using **Spring Boot** that models **real-world financial transaction processing**.
+The **Transaction Processing System** is a production-grade backend application built using Spring Boot that models real-world financial transaction processing with a strong emphasis on security, consistency, retry mechanisms, and role-based controls.
 
-Unlike basic CRUD applications, this system focuses on **how transactions behave in banking and payment platforms**, including:
+Unlike basic CRUD applications, this system focuses on how transactions behave in banking and payment platforms, including idempotency, transaction state transitions, retry limits, and admin-controlled resolution.
 
-- Secure authentication
-- Role-based authorization
-- Idempotent transaction handling
-- Retry & max-retry enforcement
-- Admin-controlled transaction resolution
-
-The project is **Dockerized**, **Swagger-enabled**, and **AWS EC2 deployment ready**.
+This project is designed to demonstrate enterprise-level backend engineering, similar to systems used in banking, payments, and fintech platforms.
 
 ---
 
 ## 🧠 Why This Project Matters
 
-This project demonstrates **industry-level backend engineering concepts**, including:
-
-- JWT-based authentication & authorization
-- Role separation (USER / ADMIN)
-- Controlled transaction lifecycle management
-- Retry mechanisms with max retry limits
-- Idempotent request handling
-- Centralized exception handling
-- Docker & cloud-ready architecture
-
-This reflects **real financial systems**, not just API CRUD operations.
+* Demonstrates real transaction system design (not simple CRUD)
+* Implements JWT-based authentication and role-based authorization
+* Handles transaction lifecycle and state transitions
+* Enforces retry logic with max retry limits
+* Prevents duplicate requests using idempotency keys
+* Centralized exception handling
+* Fully testable via Swagger UI
+* Dockerized and AWS-ready
 
 ---
 
 ## 🔗 Live API (Swagger)
-
-🚧 Will be updated after AWS EC2 deployment
-
 http://<PUBLIC-IP>:8080/swagger-ui/index.html
-
 
 ---
 
@@ -45,54 +32,41 @@ http://<PUBLIC-IP>:8080/swagger-ui/index.html
 
 ### High-Level Flow
 
+```
 Client (Swagger / Postman / Frontend)
-↓
+        ↓
 Spring Security (JWT Authentication Filter)
-↓
+        ↓
 Role Validation (USER / ADMIN)
-↓
+        ↓
 REST Controllers
-↓
-Service Layer (Business Rules)
-↓
+        ↓
+Service Layer (Transaction Rules)
+        ↓
 Repository Layer (JPA)
-↓
+        ↓
 Hibernate ORM
-↓
+        ↓
 PostgreSQL Database
 
+```
 
 ---
 
-## 🔁 Transaction Lifecycle Design
-
-CREATED → PENDING → SUCCESS
-↘ FAILED → RETRY → SUCCESS / FAILED
-
-
-### Lifecycle Rules
-
-- Transactions always start in **PENDING**
-- Only **FAILED** transactions are eligible for retry
-- Retry count is capped using **maxRetryCount**
-- Status updates are **ADMIN-only**
-- Duplicate requests are blocked using **idempotency keys**
-
----
 
 ## 🧩 Layer-wise Explanation
 
 ### 1️⃣ Controller Layer
 
 - Entry point for all HTTP requests
-- Handles request mapping & validation
-- Delegates logic to service layer
+- Handles request mapping and validation
+- Delegates logic to the service layer
 - Separate controllers for:
   - Authentication
   - User operations
   - Transaction operations
   - Admin operations
-- No business logic inside controllers
+- **No business logic inside controllers**
 
 ---
 
@@ -100,38 +74,38 @@ CREATED → PENDING → SUCCESS
 
 - Request DTOs control incoming data
 - Response DTOs control outgoing data
-- Prevents entity exposure
-- Enables validation & flexible API contracts
+- Prevents direct exposure of database entities
+- Enables validation and clean API contracts
 
 ---
 
-### 3️⃣ Service Layer (Core Business Logic)
+### 3️⃣ Service Layer (Business Logic)
 
-The most critical layer, responsible for:
-
-- Transaction creation rules
-- Idempotency validation
-- Status transition checks
-- Retry eligibility checks
-- Max retry enforcement
-- Entity ↔ DTO mapping
-- Ensures data integrity & consistency
+- Core transaction logic lives here
+- Handles:
+  - Transaction creation rules
+  - Idempotency validation
+  - Status transition checks
+  - Retry eligibility validation
+  - Max retry enforcement
+  - Entity ↔ DTO mapping
+- Ensures **data integrity** and **business correctness**
 
 ---
 
 ### 4️⃣ Repository Layer
 
-- Uses Spring Data JPA
-- Extends `JpaRepository`
-- No manual SQL
+- Interfaces extending `JpaRepository`
+- No manual SQL queries
 - Hibernate handles query generation
+- Clean separation from business logic
 
 ---
 
 ### 5️⃣ Hibernate + JPA
 
-- **Hibernate** → ORM implementation
-- **JPA** → Specification
+- **Hibernate**: ORM implementation
+- **JPA**: Specification
 - Manages:
   - Entity mapping
   - Transactions
@@ -140,89 +114,96 @@ The most critical layer, responsible for:
 
 ---
 
-## 🔐 Security
+## 🔁 Transaction Lifecycle
+CREATED → PENDING → SUCCESS
+                 ↘ FAILED → RETRY → SUCCESS / FAILED
 
-### Authentication
 
-- JWT-based authentication
-- Token generated on successful login
-- Stateless session handling
-- Token required for secured APIs
+### Rules Enforced
 
-### Authorization
-
-| Role  | Permissions |
-|------|-------------|
-| USER | Create & view transactions |
-| ADMIN | Update transaction status, manage users |
-
-Custom handlers return clean responses for:
-- **401 Unauthorized**
-- **403 Access Denied**
+- Transactions start in **PENDING**
+- Only **FAILED** transactions can be retried
+- Retry count is capped using `maxRetryCount`
+- Status updates are restricted to **ADMIN** role
+- Duplicate requests are blocked using an **idempotency key**
 
 ---
 
 ## ⚙️ Tech Stack
 
-| Layer | Technology |
-|-----|-----------|
-| Language | Java 17 |
-| Framework | Spring Boot 3.x |
-| Security | Spring Security + JWT |
-| ORM | Hibernate + JPA |
-| Database | PostgreSQL |
-| API Docs | Swagger (Springdoc OpenAPI) |
-| Containerization | Docker & Docker Compose |
-| Build Tool | Maven |
-| Cloud | AWS EC2 |
+| Layer             | Technology                         |
+|------------------|------------------------------------|
+| Language          | Java 17                            |
+| Framework         | Spring Boot 3.x                    |
+| Web               | Spring Web (REST APIs)             |
+| Security          | Spring Security + JWT              |
+| ORM               | Hibernate + JPA                    |
+| Database          | PostgreSQL                         |
+| API Documentation | Swagger (Springdoc OpenAPI)        |
+| Containerization  | Docker & Docker Compose            |
+| Build Tool        | Maven                              |
+| Cloud             | AWS EC2                            |
+
+---
+
+## 🔐 Security
+
+- JWT-based authentication
+- Stateless session handling
+- Role-based authorization:
+  - `ROLE_USER`
+  - `ROLE_ADMIN`
+- Custom handlers for:
+  - **401 Unauthorized**
+  - **403 Access Denied**
 
 ---
 
 ## 📑 Features Implemented
 
 ### ✅ Authentication & Authorization
-- User registration
-- User login with JWT
-- Role-based API access
+- User registration and login
+- JWT token generation and validation
+- Role-based API access control
 
 ### ✅ Transaction Management
-- Create transactions
+- Create transaction
 - Fetch all transactions
 - Fetch transaction by ID
 
 ### ✅ Idempotency Handling
 - Prevents duplicate transaction creation
-- Safe retry support
+- Safe retry support using idempotency keys
 
 ### ✅ Retry & Max-Retry Logic
-- Retry allowed only for FAILED transactions
-- Retry count tracking
-- Max retry limit enforcement
+- Retry allowed only for **FAILED** transactions
+- Retry count tracking per transaction
+- Automatic failure after max retry limit
 
 ### ✅ Admin Operations
 - Update transaction status (SUCCESS / FAILED)
 - View registered users
-- Secure admin-only endpoints
+- Admin-only secured endpoints
 
 ### ✅ Global Exception Handling
 - Centralized exception handling using `@ControllerAdvice`
-- Consistent API error responses
+- Consistent API error response structure
 
 ### ✅ Swagger UI
-- Interactive API documentation
+- Interactive API testing
 - JWT authorization support
 - No frontend required
 
 ### ✅ Docker Support
 - Application containerized
 - PostgreSQL containerized
-- One-command startup using Docker Compose
+- Docker Compose supported
 
 ---
 
 ## 🔎 API Examples
 
-### Create Transaction (USER)
+### Create Transaction (POST – USER)
 
 ```json
 {
@@ -232,41 +213,49 @@ Custom handlers return clean responses for:
   "description": "Rent Payment",
   "idempotencyKey": "txn-unique-5001"
 }
+```
+
 Update Transaction Status (ADMIN)
 PUT /api/admin/transactions/{id}/status?status=SUCCESS
-▶️ How to Run Locally
-1️⃣ Build Application
-mvn clean package -DskipTests
-2️⃣ Start with Docker Compose
-docker compose up -d
-3️⃣ Open Swagger UI
-http://localhost:8080/swagger-ui.html
-## ☁️ Deployment
-AWS EC2 (Free Tier)
-
-Docker & Docker Compose
-
-PostgreSQL container
-
-Public IP access
 
 ---
 
-## 📌 Project Status
+## ▶️ How to Run Locally
 
-### Phase	Status
+### Clone the repository
+```
+git clone https://github.com/nivedita1445/Transaction-System-Project.git
+```
 
-Development	✅ Completed
-Security	✅ Completed
-Swagger Testing	✅ Completed
-Docker	✅ Completed
-AWS Deployment	🔄 In Progress
+### Build the application
+```
+mvn clean package -DskipTests
+```
+
+### Start using Docker Compose
+```
+docker compose up -d
+```
+
+### Open Swagger UI
+```
+http://localhost:8080/swagger-ui.html
+```
+
+---
+
+## ☁️ Deployment
+
+* AWS EC2 (Free Tier)
+* Docker & Docker Compose
+* PostgreSQL container
+* Public IP based access
 
 ---
 
 ## 👩‍💻 Author
 
-Nivedita Wani
+*Nivedita Wani*
 Backend Developer | Java | Spring Boot | Security | Docker | AWS
 
 ---
