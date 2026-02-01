@@ -1,39 +1,31 @@
-💳 Secure Transaction Processing System (Spring Boot)
+Secure Transaction Processing System (Spring Boot)
 📌 Project Overview
 
-The Secure Transaction Processing System is a backend system designed to model real-world financial transaction handling with strong emphasis on security, consistency, failure recovery, and operational readiness.
+The Secure Transaction Processing System is a production-grade backend application built using Spring Boot that models real-world financial transaction processing with strong emphasis on security, consistency, retry mechanisms, and role-based controls.
 
-Unlike simple CRUD systems, this project focuses on transaction lifecycles, retry mechanisms, role-based controls, and stateless authentication, making it closer to banking / payment gateway backend services.
+Unlike basic CRUD applications, this system focuses on how transactions behave in banking and payment platforms, including idempotency, transaction state transitions, retry limits, and admin-controlled resolution.
 
-The application is fully Dockerized, documented via Swagger, and prepared for cloud deployment on AWS.
+🧠 Why This Project Matters
 
-🎯 What Problem This Project Solves
+This project demonstrates industry-level backend engineering concepts, such as:
 
-Real transaction systems must handle:
+Secure JWT-based authentication
 
-Partial failures
+Role-based authorization (USER / ADMIN)
 
-Duplicate requests
-
-Unauthorized access
-
-Retry limits
-
-Admin intervention
-
-This project addresses those concerns by implementing:
-
-JWT-based authentication
-
-Role separation (USER / ADMIN)
-
-Transaction state machine
+Controlled transaction lifecycle management
 
 Retry & max-retry enforcement
 
-Idempotency protection
+Idempotent transaction creation
 
-Operational Docker deployment
+Centralized exception handling
+
+Dockerized deployment
+
+Cloud-ready design (AWS EC2)
+
+It reflects how real financial systems are designed, not just how APIs are written.
 
 🔗 Live API (Swagger)
 
@@ -41,227 +33,240 @@ Operational Docker deployment
 
 http://<PUBLIC-IP>:8080/swagger-ui/index.html
 
-🧠 System Design Philosophy (Unique)
-This is NOT a CRUD system.
-
-The design revolves around transaction states and transitions, not database rows.
-
-Core Design Principles
-
-State-driven logic
-
-Security-first
-
-Failure-aware
-
-Cloud-ready
-
-Operational simplicity
-
-🏗️ Architecture Overview
-Logical Flow
-Client (Swagger / Frontend)
+🏗️ Architecture (Deep Dive)
+High-Level Flow
+Client (Swagger / Postman / Frontend)
         ↓
-JWT Authorization Layer
+Spring Security (JWT Authentication Filter)
         ↓
 Role Validation (USER / ADMIN)
         ↓
-Transaction State Engine
+REST Controllers
         ↓
-Service Layer (Business Rules)
+Service Layer (Transaction Rules)
         ↓
-Persistence Layer (JPA)
+Repository Layer (JPA)
         ↓
-PostgreSQL
+Hibernate ORM
+        ↓
+PostgreSQL Database
 
-🔁 Transaction State Machine
+🔁 Transaction Lifecycle Design
 
-Every transaction follows a controlled lifecycle:
+Every transaction follows a strict lifecycle, preventing invalid state changes.
 
 CREATED → PENDING → SUCCESS
                  ↘ FAILED → RETRY → SUCCESS / FAILED
 
-Rules Enforced
+Lifecycle Rules
 
-Retries allowed only for FAILED transactions
+Transactions start in PENDING
 
-Retry count capped (max retry threshold)
+Only FAILED transactions are eligible for retry
 
-Status updates restricted to ADMIN role
+Retry count is capped using maxRetryCount
 
-Duplicate transaction prevention using idempotency key
+Status updates are ADMIN-only
 
-🔐 Security Architecture
+Duplicate requests are blocked using an idempotency key
+
+🧩 Layer-wise Explanation
+1️⃣ Controller Layer
+
+Acts as the entry point for all HTTP requests
+
+Handles request mapping and validation
+
+Delegates logic to the service layer
+
+Separate controllers for:
+
 Authentication
 
-Stateless JWT authentication
+User operations
 
-Token issued on login
+Transaction operations
 
-Token validated on every request
+Admin operations
 
-Authorization
-Role	Permissions
-USER	Create transactions, view own data
-ADMIN	Update transaction status, manage users
+Controllers remain thin and clean, with no business logic.
 
-Unauthorized access results in:
+2️⃣ DTO Layer (Security Boundary)
 
-401 Unauthorized (no / invalid token)
+Request DTOs control incoming data
 
-403 Forbidden (role violation)
+Response DTOs control outgoing data
 
-🧩 Component Breakdown
-1️⃣ Security Layer
+Prevents entity exposure
 
-JWT Authentication Filter
+Enables validation and API flexibility
 
-Custom Authentication Entry Point
+3️⃣ Service Layer (Core Business Logic)
 
-Custom Access Denied Handler
+This is the most critical layer.
 
-Stateless Spring Security configuration
+Responsibilities include:
 
-Purpose: Prevent unauthorized access at the gateway level
-
-2️⃣ Controller Layer
-
-Exposes REST APIs
-
-Handles HTTP concerns only
-
-No business logic
-
-Clean separation by domain:
-
-Auth
-
-User
-
-Transaction
-
-Admin
-
-3️⃣ Service Layer (Core Brain)
-
-This is where the real system logic lives:
-
-Transaction creation
-
-State validation
-
-Retry eligibility checks
-
-Max retry enforcement
+Transaction creation rules
 
 Idempotency validation
 
-This layer ensures business correctness, not just data persistence.
+Status transition checks
 
-4️⃣ Persistence Layer
+Retry eligibility validation
 
-JPA repositories
+Max retry enforcement
 
-Hibernate ORM
+Mapping entities to DTOs
 
-PostgreSQL database
+Ensures data integrity and business correctness.
 
-No native SQL
+4️⃣ Repository Layer
 
-Focus: Consistency and reliability
+Uses Spring Data JPA
 
-⚙️ Technology Stack
-Category	Technology
+Extends JpaRepository
+
+Hibernate handles SQL generation
+
+Clean separation from business logic
+
+5️⃣ Hibernate + JPA
+
+Hibernate as ORM implementation
+
+JPA as specification
+
+Manages:
+
+Entity mapping
+
+Transactions
+
+Schema updates
+
+Query execution
+
+🔐 Security
+Authentication
+
+JWT-based authentication
+
+Token generated on successful login
+
+Stateless session handling
+
+Token required for secured APIs
+
+Authorization
+Role	Permissions
+USER	Create & view transactions
+ADMIN	Update transaction status, manage users
+
+Custom handlers ensure clean error responses for:
+
+401 Unauthorized
+
+403 Access Denied
+
+⚙️ Tech Stack
+Layer	Technology
 Language	Java 17
 Framework	Spring Boot 3.x
 Security	Spring Security + JWT
-ORM	Hibernate / JPA
+ORM	Hibernate + JPA
 Database	PostgreSQL
 API Docs	Swagger (Springdoc OpenAPI)
-Containerization	Docker, Docker Compose
+Containerization	Docker
 Build Tool	Maven
-Cloud	AWS EC2 (Deployment Ready)
+Cloud	AWS EC2
 📑 Features Implemented
-✅ Authentication
+✅ Authentication & Authorization
 
-Register & login
+User registration & login
 
-JWT token issuance
+JWT token generation & validation
 
-Token validation
+Role-based API access
 
-✅ Transaction Processing
+✅ Transaction Management
 
 Create transactions
 
-Fetch transactions
+Fetch all transactions
 
-Fetch by ID
+Fetch transaction by ID
 
-✅ Retry Mechanism
+✅ Retry Handling
 
-Retry only on failure
+Retry allowed only on FAILED transactions
 
-Max retry count enforced
+Retry count tracking
 
-Retry tracking per transaction
+Max retry limit enforcement
 
 ✅ Admin Operations
 
-Update transaction status
+Update transaction status (SUCCESS / FAILED)
 
-View users
+View registered users
 
-Secure admin-only APIs
+Secure admin-only endpoints
 
-✅ Swagger Integration
+✅ Global Exception Handling
 
-JWT authorization inside Swagger UI
+Centralized error handling
 
-Full API exploration without frontend
+Consistent API response structure
 
-✅ Dockerization
+✅ Swagger UI
 
-Application container
+Interactive API documentation
 
-PostgreSQL container
+JWT authorization support
 
-Networked via Docker Compose
+No frontend required for testing
 
-Single-command startup
+✅ Docker Support
+
+Application containerized
+
+PostgreSQL containerized
+
+One-command startup using Docker Compose
 
 🔎 API Examples
 Create Transaction (USER)
 {
-  "amount": 2500,
+  "amount": 5000,
   "senderAccount": "ACC1001",
   "receiverAccount": "ACC2001",
-  "description": "Fund Transfer",
-  "idempotencyKey": "txn-1001"
+  "description": "Rent Payment",
+  "idempotencyKey": "txn-unique-5001"
 }
 
 Update Transaction Status (ADMIN)
 PUT /api/admin/transactions/{id}/status?status=SUCCESS
 
-▶️ Running Locally (Docker)
-Build Application
+▶️ How to Run Locally
+1️⃣ Build Application
 mvn clean package -DskipTests
 
-Start Services
+2️⃣ Start with Docker Compose
 docker compose up -d
 
-Access Swagger
+3️⃣ Open Swagger UI
 http://localhost:8080/swagger-ui.html
 
-☁️ Deployment Strategy
+☁️ Deployment
 
-AWS EC2
+AWS EC2 (Free Tier)
 
-Docker Compose based deployment
+Docker & Docker Compose
 
-PostgreSQL containerized
+PostgreSQL container
 
-Public IP exposure via EC2 security group
+Public IP based access
 
 📌 Project Status
 Phase	Status
@@ -273,4 +278,4 @@ AWS Deployment	🔄 In Progress
 👩‍💻 Author
 
 Nivedita Wani
-Backend Engineer | Java | Spring Boot | Security | Docker | AWS
+Backend Developer | Java | Spring Boot | Security | Docker | AWS
