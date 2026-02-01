@@ -255,7 +255,7 @@ http://localhost:8080/swagger-ui.html
 
 ## 👩‍💻 Author
 
-*Nivedita Wani*
+**Nivedita Wani**
 Backend Developer | Java | Spring Boot | Security | Docker | AWS
 
 ---
