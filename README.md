@@ -24,8 +24,9 @@ This project is designed to demonstrate enterprise-level backend engineering, si
 ---
 
 ## 🔗 Live API (Swagger)
-http://<PUBLIC-IP>:8080/swagger-ui/index.html
-
+```
+http://63.178.245.147:8080/swagger-ui/index.html
+```
 ---
 
 ## 🏗️ Architecture (Deep Dive)
